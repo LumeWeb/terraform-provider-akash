@@ -4,7 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"os"
 )
+
+func envExists(key string) bool {
+	_, exists := os.LookupEnv(key)
+	return exists
+}
 
 type AkashCommand struct {
 	ctx     context.Context
@@ -123,26 +129,44 @@ func (c AkashCommand) SetFrom(key string) AkashCommand {
 }
 
 func (c AkashCommand) GasAuto() AkashCommand {
-	return c.append("--gas=auto")
+	if !envExists("AKASH_GAS") {
+		return c.append("--gas=auto")
+	}
+	return c
 }
 func (c AkashCommand) SetGasAdjustment(adjustment float32) AkashCommand {
-	return c.append(fmt.Sprintf("--gas-adjustment=%2f", adjustment))
+	if !envExists("AKASH_GAS_ADJUSTMENT") {
+		return c.append(fmt.Sprintf("--gas-adjustment=%2f", adjustment))
+	}
+	return c
 }
 
 func (c AkashCommand) SetGasPrices() AkashCommand {
-	return c.append("--gas-prices=0.025uakt")
+	if !envExists("AKASH_GAS_PRICES") {
+		return c.append("--gas-prices=0.025uakt")
+	}
+	return c
 }
 
 func (c AkashCommand) SetChainId(chainId string) AkashCommand {
-	return c.append("--chain-id").append(chainId)
+	if !envExists("AKASH_CHAIN_ID") {
+		return c.append("--chain-id").append(chainId)
+	}
+	return c
 }
 
 func (c AkashCommand) SetNode(node string) AkashCommand {
-	return c.append("--node").append(node)
+	if !envExists("AKASH_NODE") {
+		return c.append("--node").append(node)
+	}
+	return c
 }
 
 func (c AkashCommand) SetKeyringBackend(keyringBackend string) AkashCommand {
-	return c.append("--keyring-backend").append(keyringBackend)
+	if !envExists("AKASH_KEYRING_BACKEND") {
+		return c.append("--keyring-backend").append(keyringBackend)
+	}
+	return c
 }
 
 func (c AkashCommand) SetNote(note string) AkashCommand {
@@ -150,17 +174,20 @@ func (c AkashCommand) SetNote(note string) AkashCommand {
 }
 
 func (c AkashCommand) SetSignMode(mode string) AkashCommand {
-	supportedModes := map[string]bool{
-		"default":    true,
-		"amino-json": true,
-	}
+	if !envExists("AKASH_SIGN_MODE") {
+		supportedModes := map[string]bool{
+			"default":    true,
+			"amino-json": true,
+		}
 
-	if _, ok := supportedModes[mode]; !ok {
-		tflog.Error(c.ctx, fmt.Sprintf("Mode '%s' not supported", mode))
-		return c
-	}
+		if _, ok := supportedModes[mode]; !ok {
+			tflog.Error(c.ctx, fmt.Sprintf("Mode '%s' not supported", mode))
+			return c
+		}
 
-	return c.append("--sign-mode").append(mode)
+		return c.append("--sign-mode").append(mode)
+	}
+	return c
 }
 
 func (c AkashCommand) AutoAccept() AkashCommand {

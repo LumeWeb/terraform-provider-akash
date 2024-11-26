@@ -19,8 +19,8 @@ func (ak *AkashClient) GetDeployments(owner string) ([]types.DeploymentId, error
 }
 
 func (ak *AkashClient) GetDeployment(dseq string, owner string) (types.Deployment, error) {
-	cmd := cli.AkashCli(ak).Query().Deployment().Get().SetOwner(owner).SetDseq(dseq).SetChainId(ak.Config.ChainId).
-		SetNode(ak.Config.Node).OutputJson()
+	cmd := cli.AkashCli(ak).Query().Deployment().Get().SetOwner(owner).SetDseq(dseq).
+		SetChainId(ak.Config.ChainId).SetNode(ak.Config.Node).OutputJson()
 
 	deployment := types.Deployment{}
 	err := cmd.DecodeJson(&deployment)
@@ -54,8 +54,11 @@ func (ak *AkashClient) CreateDeployment(manifestLocation string) (Seqs, error) {
 // Perform the transaction to create the deployment and return either the DSEQ or an error.
 func transactionCreateDeployment(ak *AkashClient, manifestLocation string) (types.TransactionEventAttributes, error) {
 	cmd := cli.AkashCli(ak).Tx().Deployment().Create().Manifest(manifestLocation).
-		DefaultGas().AutoAccept().SetFrom(ak.Config.KeyName).SetKeyringBackend(ak.Config.KeyringBackend).
-		SetNote(ak.transactionNote).SetChainId(ak.Config.ChainId).SetNode(ak.Config.Node).OutputJson()
+		DefaultGas().AutoAccept().SetFrom(ak.Config.KeyName).
+		SetKeyringBackend(ak.Config.KeyringBackend).
+		SetChainId(ak.Config.ChainId).
+		SetNode(ak.Config.Node).
+		SetNote(ak.transactionNote).OutputJson()
 
 	transaction := types.Transaction{}
 	if err := cmd.DecodeJson(&transaction); err != nil {
@@ -72,8 +75,10 @@ func transactionCreateDeployment(ak *AkashClient, manifestLocation string) (type
 func (ak *AkashClient) DeleteDeployment(dseq string, owner string) error {
 	cmd := cli.AkashCli(ak).Tx().Deployment().Close().
 		SetDseq(dseq).SetOwner(owner).SetFrom(ak.Config.KeyName).
-		DefaultGas().SetChainId(ak.Config.ChainId).SetKeyringBackend(ak.Config.KeyringBackend).
-		SetNote(ak.transactionNote).SetNode(ak.Config.Node).AutoAccept().OutputJson()
+		DefaultGas().SetChainId(ak.Config.ChainId).
+		SetKeyringBackend(ak.Config.KeyringBackend).
+		SetNode(ak.Config.Node).
+		SetNote(ak.transactionNote).AutoAccept().OutputJson()
 
 	out, err := cmd.Raw()
 	if err != nil {
@@ -87,8 +92,11 @@ func (ak *AkashClient) DeleteDeployment(dseq string, owner string) error {
 
 func (ak *AkashClient) UpdateDeployment(dseq string, manifestLocation string) error {
 	cmd := cli.AkashCli(ak).Tx().Deployment().Update().Manifest(manifestLocation).
-		SetDseq(dseq).SetFrom(ak.Config.KeyName).SetNode(ak.Config.Node).
-		SetNote(ak.transactionNote).SetKeyringBackend(ak.Config.KeyringBackend).SetChainId(ak.Config.ChainId).
+		SetDseq(dseq).SetFrom(ak.Config.KeyName).
+		SetNode(ak.Config.Node).
+		SetKeyringBackend(ak.Config.KeyringBackend).
+		SetChainId(ak.Config.ChainId).
+		SetNote(ak.transactionNote).
 		GasAuto().SetGasAdjustment(1.5).SetGasPrices().SetSignMode("amino-json").AutoAccept().OutputJson()
 
 	out, err := cmd.Raw()
