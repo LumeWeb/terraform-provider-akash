@@ -60,13 +60,33 @@ func transactionCreateDeployment(ak *AkashClient, manifestLocation string) (type
 		SetNode(ak.Config.Node).
 		SetNote(ak.transactionNote).OutputJson()
 
-	transaction := types.Transaction{}
-	if err := cmd.DecodeJson(&transaction); err != nil {
+	var transaction types.Transaction
+
+	err := ak.WaitForTransaction(func() (string, error) {
+		if err := cmd.DecodeJson(&transaction); err != nil {
+			return "", err
+		}
+		return transaction.TxHash, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if transaction.Failed() {
+		return nil, fmt.Errorf("transaction failed: %s", transaction.RawLog)
+	}
+
+	// Query the transaction to get its events
+	queryCmd := cli.AkashCli(ak).Query().QueryTx().SetHash(transaction.TxHash).
+		SetNode(ak.Config.Node).
+		OutputJson()
+
+	if err := queryCmd.DecodeJson(&transaction); err != nil {
 		return nil, err
 	}
 
 	if len(transaction.Logs) == 0 {
-		return nil, errors.New(fmt.Sprintf("something went wrong: %s", transaction.RawLog))
+		return nil, errors.New("no transaction logs found")
 	}
 
 	return transaction.Logs[0].Events[0].Attributes, nil
@@ -80,12 +100,18 @@ func (ak *AkashClient) DeleteDeployment(dseq string, owner string) error {
 		SetNode(ak.Config.Node).
 		SetNote(ak.transactionNote).AutoAccept().OutputJson()
 
-	out, err := cmd.Raw()
+	var transaction types.Transaction
+	err := ak.WaitForTransaction(func() (string, error) {
+		if err := cmd.DecodeJson(&transaction); err != nil {
+			return "", err
+		}
+		return transaction.TxHash, nil
+	})
 	if err != nil {
 		return err
 	}
 
-	tflog.Debug(ak.ctx, fmt.Sprintf("Response: %s", out))
+	tflog.Debug(ak.ctx, fmt.Sprintf("Response: %s", transaction.RawLog))
 
 	return nil
 }
@@ -99,12 +125,19 @@ func (ak *AkashClient) UpdateDeployment(dseq string, manifestLocation string) er
 		SetNote(ak.transactionNote).
 		GasAuto().SetGasAdjustment(1.5).SetGasPrices().SetSignMode("amino-json").AutoAccept().OutputJson()
 
-	out, err := cmd.Raw()
+	var transaction types.Transaction
+	err := ak.WaitForTransaction(func() (string, error) {
+		if err := cmd.DecodeJson(&transaction); err != nil {
+			return "", err
+		}
+		return transaction.TxHash, nil
+	})
+
 	if err != nil {
 		return err
 	}
 
-	tflog.Debug(ak.ctx, fmt.Sprintf("Response: %s", out))
+	tflog.Debug(ak.ctx, fmt.Sprintf("Response: %s", transaction.RawLog))
 
 	return nil
 }

@@ -13,8 +13,10 @@ func envExists(key string) bool {
 }
 
 type AkashCommand struct {
-	ctx     context.Context
-	Content []string
+	client      AkashCliClient
+	ctx         context.Context
+	Content     []string
+	blockHeight string
 }
 
 type AkashCliClient interface {
@@ -29,12 +31,25 @@ func AkashCli(client AkashCliClient) AkashCommand {
 	}
 
 	return AkashCommand{
+		client:  client,
 		ctx:     client.GetContext(),
 		Content: []string{path},
 	}
 }
 
 func (c AkashCommand) Tx() AkashCommand {
+	return c.append("tx")
+}
+
+func (c AkashCommand) Query() AkashCommand {
+	return c.append("query")
+}
+
+func (c AkashCommand) SetHash(hash string) AkashCommand {
+	return c.append(hash)
+}
+
+func (c AkashCommand) QueryTx() AkashCommand {
 	return c.append("tx")
 }
 
@@ -66,16 +81,20 @@ func (c AkashCommand) Close() AkashCommand {
 	return c.append("close")
 }
 
-func (c AkashCommand) Query() AkashCommand {
-	return c.append("query")
-}
-
 func (c AkashCommand) Market() AkashCommand {
 	return c.append("market")
 }
 
 func (c AkashCommand) Provider() AkashCommand {
 	return c.append("provider")
+}
+
+func (c AkashCommand) Node() AkashCommand {
+	return c.append("node")
+}
+
+func (c AkashCommand) Status() AkashCommand {
+	return c.append("status")
 }
 
 func (c AkashCommand) Bid() AkashCommand {
@@ -205,4 +224,12 @@ func (c AkashCommand) Headless() []string {
 func (c AkashCommand) append(str string) AkashCommand {
 	c.Content = append(c.Content, str)
 	return c
+}
+
+func (c *AkashCommand) SetBlockHeight(height string) {
+	c.blockHeight = height
+}
+
+func (c AkashCommand) GetBlockHeight() string {
+	return c.blockHeight
 }

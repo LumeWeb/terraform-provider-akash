@@ -4,6 +4,7 @@ import "errors"
 
 type Transaction struct {
 	Height string           `json:"height"`
+	TxHash string          `json:"txhash"`
 	Logs   []TransactionLog `json:"logs"`
 	RawLog string           `json:"raw_log"`
 }
@@ -32,4 +33,24 @@ func (a TransactionEventAttributes) Get(key string) (string, error) {
 	}
 
 	return "", errors.New("attribute not found")
+}
+
+func (t Transaction) Failed() bool {
+	return len(t.Logs) == 0
+}
+
+func (t Transaction) GetEventsByType(eventType string) []TransactionEvent {
+	if len(t.Logs) == 0 {
+		return nil
+	}
+	
+	var matches []TransactionEvent
+	for _, log := range t.Logs {
+		for _, event := range log.Events {
+			if event.Type == eventType {
+				matches = append(matches, event)
+			}
+		}
+	}
+	return matches
 }

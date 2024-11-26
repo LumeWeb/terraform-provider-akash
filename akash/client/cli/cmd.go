@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func (c AkashCommand) AsCmd() *exec.Cmd {
+func (c *AkashCommand) AsCmd() *exec.Cmd {
 	return exec.Command(
 		c.Content[0],
 		c.Headless()...,
@@ -21,19 +21,18 @@ type AkashErrorResponse struct {
 	RawLog string `json:"raw_log"`
 }
 
-func (c AkashCommand) Raw() ([]byte, error) {
+func (c *AkashCommand) Raw() ([]byte, error) {
 	cmd := c.AsCmd()
-
 	tflog.Debug(c.ctx, strings.Join(cmd.Args, " "))
 
 	var errb bytes.Buffer
+
 	cmd.Stderr = &errb
+
+	// Normal handling for all other commands
 	out, err := cmd.Output()
 	if err != nil {
 		tflog.Warn(c.ctx, fmt.Sprintf("Could not execute command: %s", err.Error()))
-		if strings.Contains(errb.String(), "error unmarshalling") {
-			return c.Raw()
-		}
 
 		var akErr AkashErrorResponse
 		err := json.Unmarshal(out, &akErr)
@@ -61,14 +60,11 @@ func (c AkashCommand) DecodeJson(v any) error {
 	tflog.Debug(c.ctx, strings.Join(cmd.Args, " "))
 
 	var errb bytes.Buffer
+
 	cmd.Stderr = &errb
 	out, err := cmd.Output()
 	if err != nil {
 		tflog.Warn(c.ctx, fmt.Sprintf("Could not execute command: %s", err.Error()))
-		if strings.Contains(errb.String(), "error unmarshalling") {
-			return c.DecodeJson(v)
-		}
-
 		return errors.New(errb.String())
 	}
 
