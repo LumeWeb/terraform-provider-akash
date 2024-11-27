@@ -67,7 +67,7 @@ func (ak *AkashClient) txWorker() {
 }
 
 func (ak *AkashClient) waitForTx(txHash string) error {
-	timer := time.NewTimer(30 * time.Second)
+	timer := time.NewTimer(90 * time.Second)
 	defer timer.Stop()
 
 	for {
