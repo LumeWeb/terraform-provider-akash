@@ -24,6 +24,12 @@ const DeploymentIdOseq = 2
 const DeploymentIdOwner = 3
 const DeploymentIdProvider = 4
 
+var ErrDeploymentGone = errors.New("deployment is gone")
+
+func isDeploymentNotFound(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404")
+}
+
 func resourceDeployment() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDeploymentCreate,
@@ -357,6 +363,11 @@ func resourceDeploymentRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	deployment, err := akash.GetDeployment(deploymentId[DeploymentIdDseq], deploymentId[DeploymentIdOwner])
 	if err != nil {
+		if isDeploymentNotFound(err) {
+			tflog.Warn(ctx, "Deployment not found - marking for recreation")
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
@@ -385,6 +396,11 @@ func resourceDeploymentRead(ctx context.Context, d *schema.ResourceData, m inter
 		Oseq: deploymentId[DeploymentIdOseq],
 	}, deploymentId[DeploymentIdProvider])
 	if err != nil {
+		if isDeploymentNotFound(err) {
+			tflog.Warn(ctx, "Deployment not found - marking for recreation")
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
@@ -457,6 +473,15 @@ func resourceDeploymentUpdate(ctx context.Context, d *schema.ResourceData, m int
 	provider := deploymentId[DeploymentIdProvider]
 
 	if d.HasChange("sdl") {
+		// First verify deployment still exists
+		_, err := akash.GetDeployment(deploymentId[DeploymentIdDseq], deploymentId[DeploymentIdOwner])
+		if err != nil {
+			if isDeploymentNotFound(err) {
+				return diag.FromErr(fmt.Errorf("%w: cannot update a deployment that was externally closed", ErrDeploymentGone))
+			}
+			return diag.FromErr(err)
+		}
+
 		manifestLocation, err := CreateTemporaryFile(ctx, d.Get("sdl").(string))
 
 		// Update the deployment
@@ -491,7 +516,10 @@ func resourceDeploymentDelete(ctx context.Context, d *schema.ResourceData, m int
 
 	err := akash.DeleteDeployment(deploymentId[DeploymentIdDseq], deploymentId[DeploymentIdOwner])
 	if err != nil {
-		return diag.FromErr(err)
+		if !isDeploymentNotFound(err) {
+			return diag.FromErr(err)
+		}
+		tflog.Warn(ctx, "Deployment was already gone")
 	}
 
 	// d.SetId("") is automatically called assuming delete returns no errors, but
