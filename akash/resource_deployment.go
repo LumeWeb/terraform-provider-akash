@@ -438,7 +438,7 @@ func extractServicesFromLeaseStatus(leaseStatus types.LeaseStatus) []map[string]
 			ip["port"] = value.Port
 			ip["ip"] = value.IP
 			ip["external_port"] = value.ExternalPort
-			ip["proto"] = value.Protocol
+			ip["protocol"] = value.Protocol
 			serviceIPs = append(serviceIPs, ip)
 		}
 		service["ips"] = serviceIPs
