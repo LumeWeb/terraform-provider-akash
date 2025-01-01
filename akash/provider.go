@@ -78,6 +78,11 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("PROVIDERS_API", "http://providers-api.quasarch.cloud"),
 			},
+			"depositor_account": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("AKASH_DEPOSITOR_ACCOUNT", ""),
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"akash_deployment": resourceDeployment(),
@@ -114,16 +119,17 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	configuration := client.AkashProviderConfiguration{
-		KeyName:        config[KeyName],
-		KeyringBackend: config[KeyringBackend],
-		AccountAddress: config[AccountAddress],
-		Net:            config[Net],
-		Version:        config[ChainVersion],
-		ChainId:        config[ChainId],
-		Node:           config[Node],
-		Home:           config[Home],
-		Path:           config[Path],
-		ProvidersApi:   config[ProvidersApi],
+		KeyName:          config[KeyName],
+		KeyringBackend:   config[KeyringBackend],
+		AccountAddress:   config[AccountAddress],
+		Net:              config[Net],
+		Version:          config[ChainVersion],
+		ChainId:          config[ChainId],
+		Node:             config[Node],
+		Home:             config[Home],
+		Path:             config[Path],
+		ProvidersApi:     config[ProvidersApi],
+		DepositorAccount: d.Get("depositor_account").(string),
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting provider with %+v", configuration))

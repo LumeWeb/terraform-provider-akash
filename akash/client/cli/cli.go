@@ -192,6 +192,10 @@ func (c AkashCommand) SetNote(note string) AkashCommand {
 	return c.append(fmt.Sprintf("--note=\"%s\"", note))
 }
 
+func (c AkashCommand) SetDepositorAccount(account string) AkashCommand {
+	return c.append("--depositor-account").append(account)
+}
+
 func (c AkashCommand) SetSignMode(mode string) AkashCommand {
 	if !envExists("AKASH_SIGN_MODE") {
 		supportedModes := map[string]bool{

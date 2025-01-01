@@ -58,7 +58,13 @@ func transactionCreateDeployment(ak *AkashClient, manifestLocation string) (type
 		SetKeyringBackend(ak.Config.KeyringBackend).
 		SetChainId(ak.Config.ChainId).
 		SetNode(ak.Config.Node).
-		SetNote(ak.transactionNote).OutputJson()
+		SetNote(ak.transactionNote)
+
+	if ak.Config.DepositorAccount != "" {
+		cmd = cmd.SetDepositorAccount(ak.Config.DepositorAccount)
+	}
+
+	cmd = cmd.OutputJson()
 
 	var transaction types.Transaction
 

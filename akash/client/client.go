@@ -17,16 +17,17 @@ type AkashClient struct {
 }
 
 type AkashProviderConfiguration struct {
-	KeyName        string
-	KeyringBackend string
-	AccountAddress string
-	Net            string
-	Version        string
-	ChainId        string
-	Node           string
-	Home           string
-	Path           string
-	ProvidersApi   string
+	KeyName          string
+	KeyringBackend   string
+	AccountAddress   string
+	Net              string
+	Version          string
+	ChainId          string
+	Node             string
+	Home             string
+	Path             string
+	ProvidersApi     string
+	DepositorAccount string
 }
 
 func (ak *AkashClient) GetContext() context.Context {
