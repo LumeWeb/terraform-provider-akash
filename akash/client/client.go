@@ -28,6 +28,7 @@ type AkashProviderConfiguration struct {
 	Path             string
 	ProvidersApi     string
 	DepositorAccount string
+	FeeAccount       string
 }
 
 func (ak *AkashClient) GetContext() context.Context {

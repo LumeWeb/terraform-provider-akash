@@ -196,6 +196,10 @@ func (c AkashCommand) SetDepositorAccount(account string) AkashCommand {
 	return c.append("--depositor-account").append(account)
 }
 
+func (c AkashCommand) SetFeeAccount(account string) AkashCommand {
+	return c.append("--fee-account").append(account)
+}
+
 func (c AkashCommand) SetSignMode(mode string) AkashCommand {
 	if !envExists("AKASH_SIGN_MODE") {
 		supportedModes := map[string]bool{

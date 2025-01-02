@@ -83,6 +83,11 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("AKASH_DEPOSITOR_ACCOUNT", ""),
 			},
+			"fee_account": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("AKASH_FEE_ACCOUNT", ""),
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"akash_deployment": resourceDeployment(),
@@ -130,6 +135,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		Path:             config[Path],
 		ProvidersApi:     config[ProvidersApi],
 		DepositorAccount: d.Get("depositor_account").(string),
+		FeeAccount:       d.Get("fee_account").(string),
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting provider with %+v", configuration))

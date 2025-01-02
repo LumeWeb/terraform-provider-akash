@@ -63,6 +63,10 @@ func transactionCreateDeployment(ak *AkashClient, manifestLocation string) (type
 	if ak.Config.DepositorAccount != "" {
 		cmd = cmd.SetDepositorAccount(ak.Config.DepositorAccount)
 	}
+	
+	if ak.Config.FeeAccount != "" {
+		cmd = cmd.SetFeeAccount(ak.Config.FeeAccount)
+	}
 
 	cmd = cmd.OutputJson()
 
