@@ -236,6 +236,8 @@ func resourceDeploymentCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	d.SetId(seqs.Dseq + IdSeparator + seqs.Gseq + IdSeparator + seqs.Oseq + IdSeparator + akash.Config.AccountAddress + IdSeparator + provider)
 
+	time.Sleep(5 * time.Second)
+
 	return resourceDeploymentRead(ctx, d, m)
 }
 
@@ -502,6 +504,8 @@ func resourceDeploymentUpdate(ctx context.Context, d *schema.ResourceData, m int
 	if d.HasChange("provider_filters") {
 		tflog.Warn(ctx, "Ignoring filters on resource update")
 	}
+
+	time.Sleep(5 * time.Second)
 
 	return resourceDeploymentRead(ctx, d, m)
 }
